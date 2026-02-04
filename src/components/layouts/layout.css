@@ -1,0 +1,462 @@
+/* ============================================
+   DASHBOARD LAYOUT STYLING
+   Covers: DashboardLayout component
+   ============================================ */
+
+/* ============================================
+   DASHBOARD CONTAINER
+   ============================================ */
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--light);
+}
+
+/* ============================================
+   SIDEBAR NAVIGATION
+   ============================================ */
+
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, var(--dark) 0%, #0d0d0d 100%);
+  color: var(--white);
+  padding: 24px 20px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-md);
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.sidebar h2 {
+  color: var(--secondary);
+  margin-bottom: 24px;
+  font-size: var(--font-size-xl);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar a,
+.sidebar button {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar a:hover,
+.sidebar button:hover {
+  background: rgba(227, 27, 35, 0.2);
+  color: var(--secondary);
+}
+
+.sidebar a.active {
+  background: var(--primary);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   CONTENT AREA
+   ============================================ */
+
+.content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 40px;
+  overflow-y: auto;
+  background: var(--light);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+header {
+  background: var(--white);
+  padding: 20px 40px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  color: var(--gray);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin-bottom: 0;
+  font-size: var(--font-size-2xl);
+  color: var(--primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header-user {
+  text-align: right;
+}
+
+.header-user-name {
+  font-weight: 600;
+  color: var(--dark-gray);
+  font-size: var(--font-size-sm);
+}
+
+.header-user-role {
+  font-size: var(--font-size-xs);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   LOGOUT BUTTON
+   ============================================ */
+
+.logout-btn {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.logout-btn:hover {
+  background: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   MAIN CONTENT SECTIONS
+   ============================================ */
+
+main {
+  animation: fade-in 0.3s ease;
+}
+
+section {
+  margin-bottom: 40px;
+}
+
+section:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Large Screens (1024px+) - Default Desktop */
+@media (min-width: 1024px) {
+  .sidebar {
+    width: 280px;
+  }
+
+  .content {
+    margin-left: 280px;
+    padding: 40px;
+  }
+
+  header {
+    padding: 20px 40px;
+    font-size: var(--font-size-md);
+  }
+}
+
+/* Medium Screens (768px - 1023px) - Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar {
+    width: 240px;
+  }
+
+  .content {
+    margin-left: 240px;
+    padding: 32px 24px;
+  }
+
+  header {
+    padding: 18px 24px;
+  }
+
+  header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .header-actions {
+    gap: 10px;
+  }
+
+  .logout-btn {
+    padding: 8px 14px;
+    font-size: var(--font-size-sm);
+  }
+
+  section {
+    margin-bottom: 32px;
+  }
+}
+
+/* Small Screens (640px - 767px) - Large Mobile */
+@media (min-width: 640px) and (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -240px;
+    width: 240px;
+    height: 100vh;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar.open::after {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 24px;
+  }
+
+  header {
+    padding: 16px 24px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .header-user {
+    text-align: right;
+  }
+
+  .header-user-name {
+    font-size: var(--font-size-sm);
+  }
+
+  .logout-btn {
+    padding: 8px 12px;
+    font-size: var(--font-size-xs);
+    min-height: 40px;
+  }
+
+  section {
+    margin-bottom: 28px;
+  }
+}
+
+/* Extra Small Screens (480px - 639px) - Mobile */
+@media (max-width: 639px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    max-width: 100%;
+    height: 100vh;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    padding: 20px 16px;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar.open::after {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .sidebar h2 {
+    font-size: var(--font-size-lg);
+    margin-bottom: 20px;
+  }
+
+  .sidebar a,
+  .sidebar button {
+    padding: 10px 12px;
+    font-size: var(--font-size-sm);
+    gap: 10px;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 20px 16px;
+  }
+
+  header {
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    border-radius: var(--radius-md);
+  }
+
+  header h1 {
+    font-size: var(--font-size-lg);
+    margin: 0;
+  }
+
+  .header-actions {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .header-user {
+    text-align: left;
+    flex: 1;
+  }
+
+  .header-user-name {
+    font-size: var(--font-size-xs);
+  }
+
+  .header-user-role {
+    font-size: 11px;
+  }
+
+  .logout-btn {
+    padding: 8px 12px;
+    font-size: var(--font-size-xs);
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  section {
+    margin-bottom: 24px;
+  }
+
+  section:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Tiny Screens (< 480px) - Small Mobile */
+@media (max-width: 479px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    left: -100%;
+    max-height: 70vh;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  .sidebar h2 {
+    font-size: var(--font-size-md);
+    margin-bottom: 16px;
+  }
+
+  .sidebar a,
+  .sidebar button {
+    padding: 10px 12px;
+    font-size: var(--font-size-xs);
+  }
+
+  .content {
+    padding: 16px 12px;
+  }
+
+  header {
+    padding: 12px 12px;
+  }
+
+  header h1 {
+    font-size: var(--font-size-md);
+  }
+
+  .header-actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .logout-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+
+  main {
+    padding: 0;
+  }
+
+  section {
+    margin-bottom: 20px;
+    padding: 0;
+  }
+}

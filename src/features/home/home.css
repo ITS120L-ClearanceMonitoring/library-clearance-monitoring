@@ -1,0 +1,46 @@
+/* ============================================
+   HOME FEATURE STYLING
+   Covers: HomePage
+   ============================================ */
+
+.home-container {
+  background: var(--white);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.home-container h2 {
+  color: var(--primary);
+  margin-bottom: 24px;
+  font-size: var(--font-size-2xl);
+}
+
+.home-container p {
+  color: var(--gray);
+  font-size: var(--font-size-base);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 767px) {
+  .home-container {
+    padding: 20px;
+  }
+
+  .home-container h2 {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 479px) {
+  .home-container {
+    padding: 16px;
+  }
+
+  .home-container h2 {
+    font-size: var(--font-size-md);
+  }
+}
