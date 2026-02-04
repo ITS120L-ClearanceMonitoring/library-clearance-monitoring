@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Library Clearance Monitoring System
 
 A modern, responsive web application for managing library clearance, user accounts, and request history. Built with React, Vite, Supabase, and custom Edge Functions.
@@ -215,3 +216,6 @@ If you are using the Supabase CLI for local development and deploying Edge Funct
   
 
 After installing, you can import and use these libraries in your React components and services.
+=======
+# library-clearance-monitoring
+>>>>>>> 205c7e53c43bb5700b356b1370d1f29c6225937e
