@@ -11,6 +11,7 @@ import ClearanceListPage from "./features/clearances/pages/ClearanceListPage";
 import HistoryPage from "./features/history/pages/HistoryPage";
 import UserManagementPage from "./features/users/pages/UserManagementPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import StudentPortalPage from "./features/clearances/pages/StudentPortalPage";
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          
+          <Route path="/student-log" element={<StudentPortalPage />} />
+
           {/* Change Password - Outside Dashboard (Full Page) */}
           <Route path="/change-password" element={
             <ProtectedRoute>

@@ -221,7 +221,21 @@ const LoginPage = () => {
             Forgot Password?
           </a>
         </div>
+
+        {/* NEW: Student Mode Button */}
+        <div style={{ marginTop: '12px' }}>
+          <Button
+              type="button"
+              variant="secondary" // Mapuan Yellow
+              size="md"
+              style={{ width: '100%' }}
+              onClick={() => navigate('/student-log')}
+          >
+            Student Log Mode
+          </Button>
+        </div>
       </form>
+
     </div>
   );
 };
