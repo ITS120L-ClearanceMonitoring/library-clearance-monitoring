@@ -1,0 +1,48 @@
+.form-row {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.name-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+@media (max-width: 639px) {
+    .name-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* ------------------------------------------------- */
+
+.auth-container{
+    padding: 10px;
+}
+
+.portal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    flex-direction: column;
+}
+
+.portal-title {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    color: var(--primary); /* Optional: make it Mapuan Red */
+}
+
+/* Style for the "Please ensure..." text at the bottom */
+.portal-footer-text {
+    margin-top: 20px;
+    font-size: var(--font-size-xs);
+    color: var(--gray);
+    text-align: center;
+}

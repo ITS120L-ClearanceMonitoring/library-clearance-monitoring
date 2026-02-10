@@ -7,6 +7,7 @@ export const submitStudentLog = async (formData) => {
         .insert([{
             student_number: formData.studentNo,
             first_name: formData.firstName,
+            middle_name: formData.middleName,
             last_name: formData.lastName,
             program: formData.program,
             purpose_of_clearance: formData.purpose
