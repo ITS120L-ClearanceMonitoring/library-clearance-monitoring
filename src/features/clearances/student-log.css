@@ -1,14 +1,14 @@
+
 .form-row {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     width: 100%;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+    padding: 12px;
 }
 
 .name-row .form-group {
     flex: 1;
-    margin-bottom: 0;
 }
 
 @media (max-width: 639px) {
@@ -18,11 +18,61 @@
     }
 }
 
-/* ------------------------------------------------- */
-
-.auth-container{
-    padding: 10px;
+.line {
+    border: none;
+    border-top: 1px dashed gray;
+    height: 0;
+    margin: 15px 0;
 }
+
+/* ------------------------------------------------------------------------------- */
+/*Checkbox stuff*/
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
+    gap: 12px;
+    margin-top: 10px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: #fff;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-radius: var(--radius-sm);
+    user-select: none; /* Prevents text selection on rapid clicks */
+}
+
+.checkbox-item:hover {
+    background: #f9f9f9;
+}
+
+/* Cross-browser checkbox styling */
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary); /* Modern browser "tick" color */
+    margin: 0;
+    flex-shrink: 0;
+    appearance: checkbox;
+    -webkit-appearance: checkbox; /* Forces native appearance in Safari */
+}
+
+.checkbox-item span {
+    font-size: var(--font-size-sm);
+    color: var(--dark-gray);
+}
+
+/* ------------------------------------------------------------------------------- */
+/*student portal stuff*/
 
 .portal-header {
     display: flex;
@@ -36,10 +86,9 @@
 .portal-title {
     margin: 0;
     font-size: var(--font-size-xl);
-    color: var(--primary); /* Optional: make it Mapuan Red */
+    color: var(--primary);
 }
 
-/* Style for the "Please ensure..." text at the bottom */
 .portal-footer-text {
     margin-top: 20px;
     font-size: var(--font-size-xs);

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { submitStudentLog } from '../services/clearanceService';
 import { Button } from '../../../components/ui';
 import '../student-log.css';
+import { PROGRAM_LIST } from '../data/programs';
+import { PURPOSE_LIST } from '../data/purpose';
 
 const StudentLoggingForm = () => {
     const [form, setForm] = useState({
@@ -10,11 +12,28 @@ const StudentLoggingForm = () => {
         middleName: '',
         lastName: '',
         program: '',
-        purpose: ''
+        purpose: [] // Initialized as array for multiple checkmarks
     });
+
+    const handlePurposeChange = (purposeName) => {
+        setForm(prev => {
+            const isSelected = prev.purpose.includes(purposeName);
+            if (isSelected) {
+                // Remove from array to uncheck
+                return { ...prev, purpose: prev.purpose.filter(p => p !== purposeName) };
+            } else {
+                // Add to array to check and show tick
+                return { ...prev, purpose: [...prev.purpose, purposeName] };
+            }
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (form.purpose.length === 0) {
+            alert("Please select at least one purpose.");
+            return;
+        }
 
         if (!navigator.onLine) {
             const queue = JSON.parse(localStorage.getItem('offline_logs') || '[]');
@@ -23,10 +42,15 @@ const StudentLoggingForm = () => {
             return;
         }
 
+        const submissionData = {
+            ...form,
+            purpose: form.purpose.join(', ') // Formats array for Supabase text column
+        };
+
         try {
-            await submitStudentLog(form);
+            await submitStudentLog(submissionData);
             alert("Log submitted successfully!");
-            setForm({ studentNo: '', firstName: '', middleName: '', lastName: '', program: '', purpose: '' });
+            setForm({ studentNo: '', firstName: '', middleName: '', lastName: '', program: '', purpose: [] });
         } catch (err) {
             console.error("Submission failed:", err);
             alert("Error: " + err.message);
@@ -47,17 +71,25 @@ const StudentLoggingForm = () => {
                 </div>
                 <div className="form-group">
                     <label>Program</label>
-                    <input
-                        type="text"
+                    <select
                         value={form.program}
                         onChange={(e) => setForm({...form, program: e.target.value})}
                         required
-                    />
+                        className="form-select"
+                    >
+                        <option value="" disabled>Select Program</option>
+                        {PROGRAM_LIST.map((prog) => (
+                            <option key={prog.code} value={prog.code}>
+                                {prog.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
-            {/* Use the class from your separate CSS file */}
-            <div className="form-row">
+            <hr className="line" />
+
+            <div className="form-row name-row">
                 <div className="form-group">
                     <label>First Name</label>
                     <input
@@ -86,15 +118,24 @@ const StudentLoggingForm = () => {
                 </div>
             </div>
 
+            <hr className="line" />
+
             <div className="form-row">
-                <div className="form-group">
-                    <label>Purpose of Clearance</label>
-                    <input
-                        type="text"
-                        value={form.purpose}
-                        onChange={(e) => setForm({...form, purpose: e.target.value})}
-                        required
-                    />
+                <div className="form-group" style={{width: '100%'}}>
+                    <label>Purpose</label>
+                    <div className="checkbox-group">
+                        {PURPOSE_LIST.map((item) => (
+                            <label key={item.code} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    // Driven by state array to show multiple ticks
+                                    checked={form.purpose.includes(item.name)}
+                                    onChange={() => handlePurposeChange(item.name)}
+                                />
+                                <span>{item.name}</span>
+                            </label>
+                        ))}
+                    </div>
                 </div>
             </div>
 
