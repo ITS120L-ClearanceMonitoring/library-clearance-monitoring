@@ -75,6 +75,51 @@
   margin-bottom: 0;
 }
 
+.btn-approve, .btn-reject {
+  border: none;
+  border-radius: var(--radius-md); /* Match your existing theme */
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition); /* Match your existing transition */
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mapúa Red & Gold for Approval */
+.btn-approve {
+  background-color: #8B0000; /* Cardinal Red */
+  color: #ffc107; /* Gold */
+}
+
+.btn-approve:hover:not(:disabled) {
+  background-color: #a00000;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Dark Grey for Rejection to maintain professional look */
+.btn-reject {
+  background-color: var(--dark-gray);
+  color: var(--white);
+}
+
+.btn-reject:hover:not(:disabled) {
+  background-color: #222;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Disabled State */
+.btn-approve:disabled, .btn-reject:disabled {
+  background-color: var(--border);
+  color: var(--gray);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ============================================
    CLEARANCE DETAIL VIEW
    ============================================ */
