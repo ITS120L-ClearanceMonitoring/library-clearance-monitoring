@@ -33,9 +33,9 @@ function App() {
           
           {/* Protected Dashboard Shell */}
           <Route path="/" element={
-            <ProtectedRoute>
+            <ProtectedRoute> 
               <DashboardLayout />
-            </ProtectedRoute>
+            </ProtectedRoute> 
           }>
             <Route index element={<HomePage />} />
             <Route path="clearances" element={<ClearanceListPage />} />
