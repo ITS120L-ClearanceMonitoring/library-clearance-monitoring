@@ -124,11 +124,54 @@
   transform: translateY(-2px);
 }
 
+/* Danger Button */
+.btn-danger {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ef5350 0%, #c62828 100%);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-danger:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Disabled State */
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
+}
+
+/* ============================================
+   BADGE STYLES
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-full {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.badge-partial {
+  background-color: var(--color-secondary);
+  color: var(--color-dark);
 }
 
 /* ============================================

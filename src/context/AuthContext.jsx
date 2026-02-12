@@ -20,6 +20,18 @@ export const AuthProvider = ({ children }) => {
       console.log("User ID:", authUser.id);
       console.log("User email:", authUser.email);
       
+      // Update last_login timestamp
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ last_login: new Date().toISOString() })
+        .eq('user_id', authUser.id);
+      
+      if (updateError) {
+        console.warn("Failed to update last_login:", updateError);
+      } else {
+        console.log("✅ Updated last_login");
+      }
+      
       // Query Supabase without timeout - let it complete naturally
       // Disable caching to ensure we get fresh data
       const { data, error } = await supabase

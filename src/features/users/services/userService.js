@@ -117,23 +117,24 @@ export const updateUser = async (userId, userData) => {
 };
 
 /**
- * Delete a user (from both database and auth)
+ * Delete a user (from database via RLS policies)
  */
 export const deleteUser = async (userId) => {
   try {
     console.log('🔵 Deleting user:', userId);
     
-    // Call Edge Function to delete from both Auth and Database
-    const { data, error } = await supabase.functions.invoke('delete-user', {
-      body: { userId }
-    });
+    // Delete from users table (RLS policy will allow if current user is admin)
+    const { error: deleteError } = await supabase
+      .from('users')
+      .delete()
+      .eq('user_id', userId);
 
-    if (error) {
-      console.error('❌ Edge Function delete error:', error);
-      throw error;
+    if (deleteError) {
+      console.error('❌ Database delete error:', deleteError);
+      throw deleteError;
     }
 
-    console.log('✅ User deleted successfully from both systems:', data);
+    console.log('✅ User deleted successfully from database');
     return true;
   } catch (err) {
     console.error("❌ Delete failed:", err);

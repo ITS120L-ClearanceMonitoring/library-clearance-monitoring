@@ -13,6 +13,10 @@ const UserManagementPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
@@ -48,6 +52,17 @@ const UserManagementPage = () => {
 
   const handleInvite = async (e) => {
     e.preventDefault();
+    
+    // Show confirmation modal
+    setConfirmAction({
+      type: 'add',
+      message: `Send invitation to ${formData.email}?`,
+      onConfirm: performInvite
+    });
+    setShowConfirmModal(true);
+  };
+
+  const performInvite = async () => {
     setInviting(true);
     
     try {
@@ -70,6 +85,7 @@ const UserManagementPage = () => {
       });
       
       setShowModal(false);
+      setShowConfirmModal(false);
       // Refresh the table
       fetchUsersData();
     } catch (err) {
@@ -98,6 +114,17 @@ const UserManagementPage = () => {
 
   const handleEditUser = async (e) => {
     e.preventDefault();
+    
+    // Show confirmation modal
+    setConfirmAction({
+      type: 'edit',
+      message: `Update ${formData.first_name} ${formData.last_name}'s information?`,
+      onConfirm: performEdit
+    });
+    setShowConfirmModal(true);
+  };
+
+  const performEdit = async () => {
     setInviting(true);
     
     try {
@@ -110,6 +137,7 @@ const UserManagementPage = () => {
 
       toast.success('User updated successfully');
       setShowEditModal(false);
+      setShowConfirmModal(false);
       fetchUsersData();
     } catch (err) {
       toast.error("Update failed: " + (err.message || JSON.stringify(err)));
@@ -119,16 +147,23 @@ const UserManagementPage = () => {
   };
 
   const handleDeleteUser = async (user) => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${user.first_name} ${user.last_name}? This action cannot be undone.`
-    );
-    
-    if (!confirmDelete) return;
+    // Show confirmation modal
+    setConfirmAction({
+      type: 'delete',
+      message: `Delete ${user.first_name} ${user.last_name}? This action cannot be undone.`,
+      user: user,
+      onConfirm: performDelete
+    });
+    setShowConfirmModal(true);
+  };
 
+  const performDelete = async () => {
+    const user = confirmAction.user;
     setInviting(true);
     try {
       await deleteUser(user.user_id);
       toast.success('User deleted successfully');
+      setShowConfirmModal(false);
       fetchUsersData();
     } catch (err) {
       toast.error("Delete failed: " + (err.message || JSON.stringify(err)));
@@ -157,13 +192,76 @@ const UserManagementPage = () => {
     return date.toLocaleDateString();
   };
 
+  const filteredUsers = users.filter(u => {
+    const search = searchQuery.toLowerCase();
+    const fullName = `${u.first_name} ${u.middle_name || ''} ${u.last_name}`.toLowerCase();
+    const roleDisplay = u.role === 'LIBRARY_ADMIN' ? 'head librarian' : 'librarian';
+    
+    // Filter by role if selected
+    const roleMatch = roleFilter === 'all' || u.role === roleFilter;
+    
+    // Filter by search query
+    const searchMatch = 
+      fullName.includes(search) ||
+      u.email.toLowerCase().includes(search) ||
+      roleDisplay.includes(search);
+    
+    return roleMatch && (search === '' || searchMatch);
+  });
+
   return (
     <div className="management-container">
       {(loading || inviting) && <Loader size="md" />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Staff Management</h2>
+      </div>
+
+      {/* Search, Filter and Add Button Controls */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#333' }}>Search</label>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          />
+        </div>
+        
+        <div style={{ minWidth: '180px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#333' }}>Filter by Role</label>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              fontSize: '14px',
+              boxSizing: 'border-box',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              cursor: 'pointer',
+              backgroundColor: '#fff'
+            }}
+          >
+            <option value="all">All Roles</option>
+            <option value="LIBRARY_ADMIN">Head Librarian</option>
+            <option value="LIBRARY_VERIFIER">Librarian</option>
+          </select>
+        </div>
+        
         <Button variant="secondary" size="md" onClick={() => setShowModal(true)}>
-          + Add Staff Member
+          + Add Staff
         </Button>
       </div>
 
@@ -244,41 +342,54 @@ const UserManagementPage = () => {
           <tr>
             <th>Full Name</th>
             <th>Email</th>
+            <th>Role</th>
             <th>Access Level</th>
             <th>Last Active</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          {users.map(u => {
-            const middleInitial = getMiddleInitial(u.middle_name);
-            const fullName = `${u.first_name} ${middleInitial} ${u.last_name}`.trim();
-            return (
-              <tr key={u.user_id || u.email}>
-                <td>{fullName}</td>
-                <td>{u.email}</td>
-                <td>{u.role === 'LIBRARY_ADMIN' ? 'Head Librarian' : 'Librarian'}</td>
-                <td>{formatLastActive(u.last_sign_in_at)}</td>
-                <td style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                  <Button
-                    variant="primary"
-                    size="xs"
-                    onClick={() => openEditModal(u)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={() => handleDeleteUser(u)}
-                    style={{ color: '#d32f2f' }}
-                  >
-                    Delete
-                  </Button>
-                </td>
-              </tr>
-            );
-          })}
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map(u => {
+              const middleInitial = getMiddleInitial(u.middle_name);
+              const fullName = `${u.first_name} ${middleInitial} ${u.last_name}`.trim();
+              const roleDisplay = u.role === 'LIBRARY_ADMIN' ? 'Head Librarian' : 'Librarian';
+              const accessDisplay = u.role === 'LIBRARY_ADMIN' ? 'FULL' : 'PARTIAL';
+              const badgeClass = u.role === 'LIBRARY_ADMIN' ? 'badge-full' : 'badge-partial';
+              return (
+                <tr key={u.user_id || u.email}>
+                  <td>{fullName}</td>
+                  <td>{u.email}</td>
+                  <td>{roleDisplay}</td>
+                  <td><span className={`badge ${badgeClass}`}>{accessDisplay}</span></td>
+                  <td>{formatLastActive(u.last_login)}</td>
+                  <td style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <Button
+                      variant="primary"
+                      size="xs"
+                      onClick={() => openEditModal(u)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => handleDeleteUser(u)}
+                      style={{ color: '#d32f2f' }}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                {users.length === 0 ? 'No staff members found' : 'No results match your search'}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 
@@ -350,6 +461,37 @@ const UserManagementPage = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={() => !inviting && setShowConfirmModal(false)}
+        title="Confirm Action"
+        size="sm"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <p style={{ margin: 0, color: '#333', fontSize: '16px' }}>
+            {confirmAction?.message}
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowConfirmModal(false)} 
+              disabled={inviting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant={confirmAction?.type === 'delete' ? 'danger' : 'primary'} 
+              onClick={confirmAction?.onConfirm} 
+              disabled={inviting}
+              size="md"
+            >
+              {inviting ? 'Processing...' : 'Confirm'}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
