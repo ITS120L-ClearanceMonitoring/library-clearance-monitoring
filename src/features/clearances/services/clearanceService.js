@@ -75,3 +75,73 @@ export const fetchClearanceReportData = async () => {
   if (error) throw error;
   return data || [];
 };
+
+// --- 4. Dashboard Metrics & Activity ---
+
+/**
+ * Fetch high-level clearance metrics for the dashboard.
+ *
+ * - pending: clearances explicitly marked as 'NOT CLEARED'
+ * - cleared: clearances marked as 'CLEARED'
+ * - unfinished: all clearances that are not 'CLEARED'
+ */
+export const fetchDashboardMetrics = async () => {
+  // 1) Pending (NOT CLEARED)
+  const { count: pending, error: pendingError } = await supabase
+    .from('clearance')
+    .select('*', { count: 'exact', head: true })
+    .eq('clearance_status', 'NOT CLEARED');
+
+  if (pendingError) throw pendingError;
+
+  // 2) Cleared
+  const { count: cleared, error: clearedError } = await supabase
+    .from('clearance')
+    .select('*', { count: 'exact', head: true })
+    .eq('clearance_status', 'CLEARED');
+
+  if (clearedError) throw clearedError;
+
+  // 3) Total
+  const { count: total, error: totalError } = await supabase
+    .from('clearance')
+    .select('*', { count: 'exact', head: true });
+
+  if (totalError) throw totalError;
+
+  const unfinished = Math.max(0, (total || 0) - (cleared || 0));
+
+  return {
+    pending: pending || 0,
+    unfinished,
+    cleared: cleared || 0,
+  };
+};
+
+/**
+ * Fetch recent audit trail entries for the dashboard "Recent Activity" section.
+ */
+export const fetchRecentAuditActivity = async (limit = 5) => {
+  const { data, error } = await supabase
+    .from('audit_trail')
+    .select(`
+      audit_id,
+      action_type,
+      old_status,
+      new_status,
+      editor_name,
+      timestamp,
+      remarks,
+      student:student_id (
+        student_number,
+        first_name,
+        middle_name,
+        last_name
+      )
+    `)
+    .order('timestamp', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+};

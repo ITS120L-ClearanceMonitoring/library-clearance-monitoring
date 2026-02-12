@@ -174,7 +174,7 @@ const DashboardLayout = () => {
       <main className="content">
         <header>
           <div className="header-left">
-            <span>Welcome, {user?.displayName || 'Librarian'}</span>
+            <span>Welcome, {isAdmin ? 'Admin' : 'Librarian'}</span>
           </div>
         </header>
         <Outlet /> {/* This renders the specific page (Clearances or Users) */}
