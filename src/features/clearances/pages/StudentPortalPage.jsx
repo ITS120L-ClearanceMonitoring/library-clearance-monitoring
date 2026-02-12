@@ -12,7 +12,7 @@ const StudentPortalPage = () => {
             <div className="auth-form">
 
                 <div className="portal-header">
-                    <h2 className="portal-title">Student Log</h2>
+                    <h2 className="portal-title">Clearance Request Form</h2>
 
                     <Button
                         variant="ghost"
