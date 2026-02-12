@@ -1,7 +1,9 @@
 import { supabase } from '../../../services/supabaseClient';
 
+/**
+ * Submits a student log and creates an initial 'NOT CLEARED' record.
+ */
 export const submitStudentLog = async (formData) => {
-  // 1. Insert into "student" table (Matches ERD exactly)
   const { data: student, error: sError } = await supabase
     .from('student')
     .insert([{
@@ -17,7 +19,6 @@ export const submitStudentLog = async (formData) => {
 
   if (sError) throw sError;
 
-  // 2. Insert into "clearance" table (Matches ERD exactly)
   const { error: logError } = await supabase
     .from('clearance')
     .insert([{
@@ -30,60 +31,50 @@ export const submitStudentLog = async (formData) => {
 };
 
 /**
- * Fetch clearance records with related student data so the
- * Clearance List page can display real Supabase data.
+ * Fetches clearance list for the UI dashboard.
  */
 export const fetchClearances = async () => {
-  try {
-    // 1. Fetch raw clearance rows
-    const { data: clearanceData, error: clearanceError } = await supabase
-      .from('clearance')
-      .select('*')
-      .order('data_logged', { ascending: false });
+  const { data: clearanceData, error: clearanceError } = await supabase
+    .from('clearance')
+    .select('*')
+    .order('data_logged', { ascending: false });
 
-    if (clearanceError) {
-      console.error('Supabase fetchClearances (clearance) error:', clearanceError);
-      throw clearanceError;
-    }
+  if (clearanceError) throw clearanceError;
+  if (!clearanceData || clearanceData.length === 0) return [];
 
-    if (!clearanceData || clearanceData.length === 0) {
-      return [];
-    }
+  const studentIds = Array.from(new Set(clearanceData.map((c) => c.student_id).filter(Boolean)));
+  const { data: studentsData, error: studentsError } = await supabase
+    .from('student')
+    .select('*')
+    .in('student_id', studentIds);
 
-    // 2. Collect all related student IDs
-    const studentIds = Array.from(
-      new Set(
-        clearanceData
-          .map((c) => c.student_id)
-          .filter(Boolean)
+  if (studentsError) throw studentsError;
+  const studentById = Object.fromEntries((studentsData || []).map((s) => [s.student_id, s]));
+
+  return clearanceData.map((c) => ({
+    ...c,
+    student: studentById[c.student_id] || null,
+  }));
+};
+
+/**
+ * Specialized query for the CSV Report using Schema Joins.
+ */
+export const fetchClearanceReportData = async () => {
+  const { data, error } = await supabase
+    .from('clearance')
+    .select(`
+      clearance_status,
+      data_logged,
+      student:student_id (
+        student_number, first_name, last_name, program, purpose_of_clearance
+      ),
+      librarian:last_updated_by (
+        first_name, last_name
       )
-    );
+    `)
+    .order('data_logged', { ascending: false });
 
-    // 3. Fetch all referenced students in a single query
-    const { data: studentsData, error: studentsError } = await supabase
-      .from('student')
-      .select('*')
-      .in('student_id', studentIds);
-
-    if (studentsError) {
-      console.error('Supabase fetchClearances (student) error:', studentsError);
-      throw studentsError;
-    }
-
-    const studentById = Object.fromEntries(
-      (studentsData || []).map((s) => [s.student_id, s])
-    );
-
-    // 4. Attach student details and expose a friendly clearance_id field
-    const result = clearanceData.map((c) => ({
-      ...c,
-      clearance_id: c.clearance_uuid ?? c.clearance_id,
-      student: studentById[c.student_id] || null,
-    }));
-
-    return result;
-  } catch (err) {
-    console.error('fetchClearances failed:', err);
-    throw err;
-  }
+  if (error) throw error;
+  return data || [];
 };

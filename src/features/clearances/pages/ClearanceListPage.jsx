@@ -1,119 +1,101 @@
 import React, { useEffect, useState } from "react";
-import { fetchClearances } from "../services/clearanceService";
-import { updateClearanceWithAudit } from "../../../services/auditService"; // Import your Audit Service
-import { useAuth } from "../../../context/AuthContext"; // To get the Librarian's name (FR3.4)
+import { fetchClearances, fetchClearanceReportData } from "../services/clearanceService";
+import { downloadClearanceReportCSV } from "../../../util/csvHelpers";
+import { updateClearanceWithAudit } from "../../../services/auditService";
+import { useAuth } from "../../../context/AuthContext";
+import { Button } from "../../../components/ui";
 import "../clearances.css";
-
-const getStatusClass = (status) => {
-  if (!status) return "status-pending";
-  switch (status.toUpperCase()) {
-    case "CLEARED": return "status-approved";
-    case "NOT CLEARED": return "status-rejected";
-    default: return "status-pending";
-  }
-};
-
-const formatDateTime = (isoString) => {
-  if (!isoString) return "N/A";
-  const date = new Date(isoString);
-  return Number.isNaN(date.getTime()) ? isoString : date.toLocaleString();
-};
 
 export default function ClearanceListPage() {
   const [clearances, setClearances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useAuth(); // FR3.4: Librarian ID/Name
+  const { user } = useAuth();
 
-  const loadClearances = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       const data = await fetchClearances();
       setClearances(data);
     } catch (err) {
-      setError(err.message || "Failed to load clearance requests.");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadClearances();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  // Handler for Approve/Reject Actions
+  const handleExport = async () => {
+    try {
+      const data = await fetchClearanceReportData();
+      if (data.length > 0) {
+        downloadClearanceReportCSV(data);
+      } else {
+        alert("No records to export.");
+      }
+    } catch (err) {
+      alert("Export failed: " + err.message);
+    }
+  };
+
   const handleStatusUpdate = async (item, newStatus) => {
     let remarks = "";
-
-    // FR3.3: Mandatory Reason for Denial
     if (newStatus === "NOT CLEARED") {
-      remarks = prompt("Please provide a Reason for Withholding (e.g., Unpaid fine, Unreturned book):");
-      if (!remarks) return alert("You must provide a reason to mark a student as 'Not Cleared'.");
+      remarks = prompt("Reason for withholding:");
+      if (!remarks) return alert("Reason is required for rejection.");
     }
-
     try {
       await updateClearanceWithAudit({
         clearance_uuid: item.clearance_uuid,
         student_id: item.student_id,
         old_status: item.clearance_status,
         new_status: newStatus,
-        performed_by: user?.id || 'DEBUG_ID',
+        performed_by: user?.user_id, // Uses schema user_id
         editor_name: user?.displayName || 'Librarian',
-        remarks: remarks
+        remarks
       });
-      
-      alert(`Status successfully updated to ${newStatus}`);
-      loadClearances(); // Refresh the list
-    } catch (err) {
-      alert("Error updating status: " + err.message);
-    }
+      loadData();
+    } catch (err) { alert(err.message); }
   };
 
+  if (loading) return <div className="p-6">Loading clearance records...</div>;
+
   return (
-    <div className="clearance-container">
-      <h2>Clearance Requests</h2>
-      {/* ... keep your existing loading and error states ... */}
+    <div className="clearance-container p-6">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0 }}>Clearance Requests</h2>
+        <Button onClick={handleExport} variant="secondary">Export CSV Report</Button>
+      </div>
 
-      {!loading && !error && clearances.map((item) => {
-        const student = item.student || {};
-        const fullName = [student.first_name, student.middle_name, student.last_name].filter(Boolean).join(" ");
-        const statusClass = getStatusClass(item.clearance_status);
-
-        return (
-          <div key={item.clearance_id || item.clearance_uuid} className="clearance-item">
+      <div className="clearance-list">
+        {clearances.map((item) => (
+          <div key={item.clearance_uuid} className="clearance-item">
             <div className="clearance-info">
-              <h4>{fullName || "Unnamed student"}</h4>
-              <p>Student No.: {student.student_number || "—"}</p>
-              <p>Purpose: {student.purpose_of_clearance || "—"}</p>
-              <p>Logged at: {formatDateTime(item.data_logged)}</p>
+              <h4>{item.student?.first_name} {item.student?.last_name}</h4>
+              <p>Student No: {item.student?.student_number}</p>
+              <p>Purpose: {item.student?.purpose_of_clearance}</p>
+              <p>Status: <strong>{item.clearance_status}</strong></p>
             </div>
-            
-            <div className="clearance-actions">
-              <span className={`status-badge ${statusClass}`}>
-                {item.clearance_status || "UNKNOWN"}
-              </span>
-              
-              {/* FR3.2: Status Controls */}
-              <div className="button-group" style={{ marginTop: '10px' }}>
-                <button 
-                  onClick={() => handleStatusUpdate(item, "CLEARED")}
+            <div className="button-group">
+               <button 
+                  onClick={() => handleStatusUpdate(item, "CLEARED")} 
                   className="btn-approve"
                   disabled={item.clearance_status === "CLEARED"}
-                >
-                  Approve
-                </button>
-                <button 
-                  onClick={() => handleStatusUpdate(item, "NOT CLEARED")}
+               >
+                 Approve
+               </button>
+               <button 
+                  onClick={() => handleStatusUpdate(item, "NOT CLEARED")} 
                   className="btn-reject"
                   disabled={item.clearance_status === "NOT CLEARED"}
-                >
-                  Reject
-                </button>
-              </div>
+               >
+                 Reject
+               </button>
             </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
