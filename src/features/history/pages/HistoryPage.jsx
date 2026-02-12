@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../services/supabaseClient';
-import { downloadAuditCSV } from '../../../util/csvHelpers';
+import { downloadAuditCSV, downloadAuditPDF } from '../../../util/csvHelpers';
 import '../history.css';
 
 const HistoryPage = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // FR4.1: Fetch audit logs using standard React hooks (Vite-compatible)
   useEffect(() => {
     const fetchLogs = async () => {
       try {
@@ -68,26 +67,38 @@ const HistoryPage = () => {
         </table>
       )}
 
-      {/* FR4.3: Export Button placed at Bottom Right */}
-      <button 
-        onClick={() => downloadAuditCSV(logs)}
-        style={{
-          position: 'fixed',
-          bottom: '30px',
-          right: '30px',
-          padding: '12px 24px',
-          backgroundColor: '#ffc107', // Mapúa Yellow
-          color: '#000',
-          border: 'none',
-          borderRadius: '5px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-          zIndex: 1000
-        }}
-      >
-        Save Audit Trail (CSV)
-      </button>
+      <div style={{ position: 'fixed', bottom: '30px', right: '30px', display: 'flex', gap: '10px', zIndex: 1000 }}>
+        <button 
+          onClick={() => downloadAuditCSV(logs)}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#ffc107',
+            color: '#000',
+            border: 'none',
+            borderRadius: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+          }}
+        >
+          Save CSV
+        </button>
+        <button 
+          onClick={() => downloadAuditPDF(logs)}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#E31B23',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+          }}
+        >
+          Save PDF
+        </button>
+      </div>
     </div>
   );
 };

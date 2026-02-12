@@ -1,9 +1,8 @@
 import { supabase } from '../../../services/supabaseClient';
 
-/**
- * Submits a student log and creates an initial 'NOT CLEARED' record.
- */
+// --- 1. Student Logging Logic (Fixed: Added this missing function) ---
 export const submitStudentLog = async (formData) => {
+  // Insert into "student" table first
   const { data: student, error: sError } = await supabase
     .from('student')
     .insert([{
@@ -19,6 +18,7 @@ export const submitStudentLog = async (formData) => {
 
   if (sError) throw sError;
 
+  // Then insert into "clearance" table
   const { error: logError } = await supabase
     .from('clearance')
     .insert([{
@@ -30,9 +30,7 @@ export const submitStudentLog = async (formData) => {
   if (logError) throw logError;
 };
 
-/**
- * Fetches clearance list for the UI dashboard.
- */
+// --- 2. Clearance List Logic ---
 export const fetchClearances = async () => {
   const { data: clearanceData, error: clearanceError } = await supabase
     .from('clearance')
@@ -43,6 +41,7 @@ export const fetchClearances = async () => {
   if (!clearanceData || clearanceData.length === 0) return [];
 
   const studentIds = Array.from(new Set(clearanceData.map((c) => c.student_id).filter(Boolean)));
+  
   const { data: studentsData, error: studentsError } = await supabase
     .from('student')
     .select('*')
@@ -57,9 +56,7 @@ export const fetchClearances = async () => {
   }));
 };
 
-/**
- * Specialized query for the CSV Report using Schema Joins.
- */
+// --- 3. Report Data Logic ---
 export const fetchClearanceReportData = async () => {
   const { data, error } = await supabase
     .from('clearance')
