@@ -1,13 +1,398 @@
-<<<<<<< HEAD
 # Library Clearance Monitoring System
 
-A modern, responsive web application for managing library clearance, user accounts, and request history. Built with React, Vite, Supabase, and custom Edge Functions.
+A modern dual-application system for managing library clearance requests with separate **Admin Dashboard** and **Student Portal** applications.
+
+## 📋 Overview
+
+- **Admin App**: Full-featured dashboard for staff to manage clearance statuses, view student records, and generate reports
+- **Student App**: Public form for students to submit clearance requests without authentication
+- **Shared Backend**: Both apps connect to the same Supabase database
+- **Independent Deployments**: Each app can be deployed separately to different servers/domains
 
 ---
 
-## Table of Contents
-- [Features](#features)
-- [Tech Stack](#tech-stack)
+## 📁 Project Structure
+
+```
+library-clearance-monitoring/
+├── admin-app/                  # Admin dashboard (port 5173)
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   ├── features/
+│   │   │   ├── auth/          # Login, password reset
+│   │   │   ├── clearances/    # Clearance management
+│   │   │   ├── history/       # Audit logs
+│   │   │   ├── home/          # Dashboard
+│   │   │   └── users/         # Admin management
+│   │   ├── components/        # Shared UI components
+│   │   ├── services/          # API & Supabase
+│   │   └── styles/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── .env                   # Should be in .gitignore
+│   └── README.md
+│
+├── student-app/                # Public student form (port 5174)
+│   ├── src/
+│   │   ├── StudentApp.jsx
+│   │   ├── main.jsx
+│   │   ├── pages/
+│   │   │   └── StudentPortalPage.jsx
+│   │   ├── components/
+│   │   │   └── StudentLoggingForm.jsx
+│   │   ├── services/
+│   │   │   ├── clearanceService.js    # Form submission
+│   │   │   └── supabaseClient.js
+│   │   ├── data/
+│   │   │   ├── programs.js            # Program list
+│   │   │   └── purpose.js             # Purpose options
+│   │   └── styles/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── .env                   # Should be in .gitignore
+│   └── README.md
+│
+├── supabase/                   # Shared database config
+│   ├── config.toml
+│   └── functions/              # Edge functions
+│
+├── package.json                # Root workspace coordinator
+├── .gitignore
+├── README.md                   # This file
+└── .env                        # Root env (optional, .gitignore'd)
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install Root Dependencies
+```bash
+npm install
+```
+
+### 2. Setup Environment Variables
+
+Create `.env.local` files in both app directories with your Supabase credentials:
+
+**admin-app/.env.local:**
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+**student-app/.env.local:**
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+⚠️ **Important**: Both files use the same credentials. Both apps share the same Supabase project.
+
+### 3. Run the Applications
+
+**Option A: Run both apps together**
+```bash
+npm run dev:all
+```
+
+**Option B: Run individual apps**
+```bash
+# Terminal 1: Admin app
+npm run dev:admin
+
+# Terminal 2: Student app
+npm run dev:student
+```
+
+**Option C: Navigate into each app**
+```bash
+cd admin-app && npm install && npm run dev
+# In another terminal:
+cd student-app && npm install && npm run dev
+```
+
+### 4. Access the Apps
+
+- **Admin Dashboard**: http://localhost:5173 (requires login)
+- **Student Portal**: http://localhost:5174 (public, no login)
+
+---
+
+## 📦 Applications
+
+### Admin App (`admin-app/`)
+
+**Purpose**: Dashboard for library staff
+
+**Features**:
+- ✅ User authentication with role-based access
+- ✅ View and manage student clearance status
+- ✅ Search and filter student records
+- ✅ Export clearance history to PDF/CSV
+- ✅ Audit logging for all actions
+- ✅ User account management
+- ✅ Session timeout with inactivity detection
+
+**Tech Stack**:
+- React 19
+- React Router 7
+- Supabase Auth
+- jsPDF for exports
+- Custom CSS with design system
+
+**Build & Deploy**:
+```bash
+npm run build:admin
+# Output: admin-app/dist/
+```
+
+### Student App (`student-app/`)
+
+**Purpose**: Public form for students to submit clearance requests
+
+**Features**:
+- ✅ Simple, user-friendly form
+- ✅ No authentication required (public access)
+- ✅ Program and purpose selection
+- ✅ Real-time form validation
+- ✅ Offline support with auto-sync when online
+- ✅ Mobile-responsive design
+- ✅ LocalStorage queuing for offline submissions
+
+**Tech Stack**:
+- React 19
+- Vite 7
+- Supabase (anonymous access)
+- Custom CSS with design system
+
+**Build & Deploy**:
+```bash
+npm run build:student
+# Output: student-app/dist/
+```
+
+---
+
+## 📝 Available npm Scripts
+
+### From Root Directory
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev:all` | Run both apps in parallel |
+| `npm run dev:admin` | Run admin app only |
+| `npm run dev:student` | Run student app only |
+| `npm run build:all` | Build both apps for production |
+| `npm run build:admin` | Build admin app only |
+| `npm run build:student` | Build student app only |
+| `npm run lint` | Lint both apps |
+| `npm run preview` | Preview production build |
+
+### Per-App Commands
+
+Each app has its own `package.json` with commands:
+```bash
+cd admin-app && npm run dev      # Dev server
+cd admin-app && npm run build    # Production build
+cd admin-app && npm run lint     # Lint code
+
+cd student-app && npm run dev
+cd student-app && npm run build
+cd student-app && npm run lint
+```
+
+---
+
+## 🗄️ Database & Backend
+
+### Shared Supabase Project
+
+Both apps connect to the **same Supabase project** using:
+- `VITE_SUPABASE_URL` - Your project URL
+- `VITE_SUPABASE_ANON_KEY` - Anonymous/public key
+
+### Database Tables
+
+- **users** - Admin and staff accounts (requires auth)
+- **student** - Student information (public read, anonymous write)
+- **clearance** - Clearance status records (public read, authenticated update)
+- **audit_log** - Activity history (admin only)
+
+### Edge Functions
+
+Located in `supabase/functions/`:
+- `complete-first-login/` - Handle password change on first login
+- `delete-user/` - Safe user deletion
+- `invite-staff/` - Send staff invitations
+
+---
+
+## 🌐 Deployment
+
+### Deploy Admin App
+```bash
+npm run build:admin
+# Deploy admin-app/dist/ to your server
+# e.g., Vercel, Netlify, AWS, Azure, etc.
+```
+
+### Deploy Student App
+```bash
+npm run build:student
+# Deploy student-app/dist/ to your server
+# Can be same or different server than admin
+```
+
+### Deployment Options
+
+| Platform | Admin | Student | Notes |
+|----------|-------|---------|-------|
+| Vercel | ✅ | ✅ | Easiest, auto-deploy from git |
+| Netlify | ✅ | ✅ | Good for static sites |
+| AWS Amplify | ✅ | ✅ | Full AWS integration |
+| Azure Static Apps | ✅ | ✅ | Good for enterprise |
+| Self-hosted | ✅ | ✅ | Any Node.js server |
+
+### Environment Variables in Production
+
+Set the same variables in your deployment platform:
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+---
+
+## 🔒 Security
+
+- **Admin App**: Requires authentication via Supabase Auth
+- **Student App**: Allows anonymous submissions (public access)
+- **Database Policies**: RLS (Row Level Security) restricts data access appropriately
+- **Sensitive Operations**: Require LIBRARY_ADMIN role
+- **Environment Variables**: `.env` files are in `.gitignore`
+
+---
+
+## 🛠️ Development Workflow
+
+### Working on Admin Features Only
+```bash
+cd admin-app
+npm install
+npm run dev
+```
+
+### Working on Student Feature Only
+```bash
+cd student-app
+npm install
+npm run dev
+```
+
+### Working on Both (Recommended)
+```bash
+# From root
+npm run dev:all
+```
+
+### Making Changes
+
+Both apps use **hot module replacement (HMR)** - changes save automatically without manual restart.
+
+---
+
+## 📚 Additional Documentation
+
+- **Admin App Details**: [admin-app/README.md](./admin-app/README.md)
+- **Student App Details**: [student-app/README.md](./student-app/README.md)
+- **Supabase Setup**: [supabase/README.md](./supabase/README.md) (if exists)
+
+---
+
+## 🔄 Git & Version Control
+
+Both apps are in a **single Git repository**. You can:
+
+```bash
+git add admin-app/        # Stage only admin changes
+git add student-app/      # Stage only student changes
+git add .                 # Stage all changes
+git commit -m "message"
+git push
+```
+
+### Important Files (Not Tracked)
+- `.env` files (use `.env.example` for templates)
+- `node_modules/` (auto-installed with `npm install`)
+- `dist/` folders (build artifacts)
+
+---
+
+## ⚠️ Troubleshooting
+
+### Port Already In Use
+If ports 5173/5174 are busy, update `vite.config.js` in each app:
+```javascript
+server: {
+  port: 3000  // Change to available port
+}
+```
+
+### Dependencies Not Installing
+```bash
+# Clear and reinstall
+rm -r admin-app/node_modules student-app/node_modules
+npm install
+npm run dev:all
+```
+
+### Supabase Connection Failed
+- ✅ Check `.env.local` has correct credentials
+- ✅ Verify `VITE_SUPABASE_URL` is your actual project URL
+- ✅ Confirm `VITE_SUPABASE_ANON_KEY` matches your project
+- ✅ Check database policies allow public read/write where needed
+
+### Build Errors
+```bash
+# Clear caches and rebuild
+cd admin-app && rm -rf node_modules dist && npm install && npm run build
+cd student-app && rm -rf node_modules dist && npm install && npm run build
+```
+
+---
+
+## 📞 Support & Questions
+
+For issues related to:
+- **Admin App**: See [admin-app/README.md](./admin-app/README.md)
+- **Student App**: See [student-app/README.md](./student-app/README.md)
+- **Database**: Check Supabase dashboard
+
+---
+
+## 📄 License
+
+Mapuan De La Salle University - Library Management System
+
+---
+
+## ✅ Checklist for New Developers
+
+- [ ] Clone the repository
+- [ ] Run `npm install` at root
+- [ ] Create `admin-app/.env.local` with Supabase credentials
+- [ ] Create `student-app/.env.local` with same credentials
+- [ ] Run `npm run dev:all`
+- [ ] Access admin at http://localhost:5173
+- [ ] Access student at http://localhost:5174
+- [ ] Test admin login
+- [ ] Test student form submission
+
+Happy coding! 🎉
 - [Project Structure](#project-structure)
 - [Setup & Installation](#setup--installation)
 - [Environment Variables](#environment-variables)
