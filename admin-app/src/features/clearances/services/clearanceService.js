@@ -1,0 +1,149 @@
+import { supabase } from '../../../services/supabaseClient';
+
+// --- 1. Student Logging Logic (Fixed: Added this missing function) ---
+export const submitStudentLog = async (formData) => {
+  // Insert into "student" table first
+  const { data: student, error: sError } = await supabase
+    .from('student')
+    .insert([{
+      student_number: formData.studentNo,
+      first_name: formData.firstName,
+      middle_name: formData.middleName,
+      last_name: formData.lastName,
+      program: formData.program,
+      purpose_of_clearance: formData.purpose
+    }])
+    .select()
+    .single();
+
+  if (sError) throw sError;
+
+  // Then insert into "clearance" table
+  const now = new Date().toISOString();
+  const { error: logError } = await supabase
+    .from('clearance')
+    .insert([{
+      student_id: student.student_id,
+      clearance_status: 'NOT CLEARED',
+      data_logged: now,
+      last_updated_at: now
+    }]);
+
+  if (logError) throw logError;
+};
+
+// --- 2. Clearance List Logic ---
+export const fetchClearances = async () => {
+  const { data: clearanceData, error: clearanceError } = await supabase
+    .from('clearance')
+    .select('*')
+    .order('data_logged', { ascending: false });
+
+  if (clearanceError) throw clearanceError;
+  if (!clearanceData || clearanceData.length === 0) return [];
+
+  const studentIds = Array.from(new Set(clearanceData.map((c) => c.student_id).filter(Boolean)));
+  
+  const { data: studentsData, error: studentsError } = await supabase
+    .from('student')
+    .select('*')
+    .in('student_id', studentIds);
+
+  if (studentsError) throw studentsError;
+  const studentById = Object.fromEntries((studentsData || []).map((s) => [s.student_id, s]));
+
+  return clearanceData.map((c) => ({
+    ...c,
+    student: studentById[c.student_id] || null,
+  }));
+};
+
+// --- 3. Report Data Logic ---
+export const fetchClearanceReportData = async () => {
+  const { data, error } = await supabase
+    .from('clearance')
+    .select(`
+      clearance_status,
+      data_logged,
+      student:student_id (
+        student_number, first_name, last_name, program, purpose_of_clearance
+      ),
+      librarian:last_updated_by (
+        first_name, last_name
+      )
+    `)
+    .order('data_logged', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
+// --- 4. Dashboard Metrics & Activity ---
+
+/**
+ * Fetch high-level clearance metrics for the dashboard.
+ *
+ * - pending: clearances explicitly marked as 'NOT CLEARED'
+ * - cleared: clearances marked as 'CLEARED'
+ * - unfinished: all clearances that are not 'CLEARED'
+ */
+export const fetchDashboardMetrics = async () => {
+  // 1) Pending (NOT CLEARED)
+  const { count: pending, error: pendingError } = await supabase
+    .from('clearance')
+    .select('*', { count: 'exact', head: true })
+    .eq('clearance_status', 'NOT CLEARED');
+
+  if (pendingError) throw pendingError;
+
+  // 2) Cleared
+  const { count: cleared, error: clearedError } = await supabase
+    .from('clearance')
+    .select('*', { count: 'exact', head: true })
+    .eq('clearance_status', 'CLEARED');
+
+  if (clearedError) throw clearedError;
+
+  // 3) Total
+  const { count: total, error: totalError } = await supabase
+    .from('clearance')
+    .select('*', { count: 'exact', head: true });
+
+  if (totalError) throw totalError;
+
+  const unfinished = Math.max(0, (total || 0) - (cleared || 0));
+
+  return {
+    pending: pending || 0,
+    unfinished,
+    cleared: cleared || 0,
+  };
+};
+
+/**
+ * Fetch recent audit trail entries for the dashboard "Recent Activity" section.
+ */
+export const fetchRecentAuditActivity = async (limit = 5) => {
+  const { data, error } = await supabase
+    .from('audit_trail')
+    .select(`
+      audit_id,
+      action_type,
+      old_status,
+      new_status,
+      editor_name,
+      timestamp,
+      remarks,
+      student:student_id (
+        student_number,
+        first_name,
+        middle_name,
+        last_name
+      )
+    `)
+    .order('timestamp', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+};
