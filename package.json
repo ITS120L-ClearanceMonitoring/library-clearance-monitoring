@@ -22,6 +22,7 @@
     "preview:student": "cd student-app && npm run preview"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^8.2.0"
   },
   "keywords": [
