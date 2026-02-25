@@ -1,0 +1,156 @@
+.auth-container {
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;     /* Centers vertically */
+    min-height: 100vh;      /* Takes up 100% of the screen height */
+    padding: 20px;
+    background: var(--light);
+    width: 100%;            /* Ensure container spans full width */
+    box-sizing: border-box;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.auth-form {
+    width: 100%;
+    max-width: 100%;
+    background: var(--white);
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    transition: max-width 0.3s ease;
+    display: block;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: row; /* Default: Horizontal for laptop */
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 0; /* Removed fixed padding to align better with labels */
+}
+
+/* Mobile Overrides (Phone/Tablet) */
+@media (max-width: 850px) {
+    .auth-form {
+        padding: 20px;
+        max-width: 100%; /* Take full width on mobile */
+    }
+
+    .form-row {
+        flex-direction: column; /* Stack inputs vertically */
+        gap: 15px;
+    }
+
+    .portal-title {
+        font-size: var(--font-size-lg);
+    }
+}
+
+.name-row .form-group {
+    flex: 1;
+}
+
+.line {
+    border: none;
+    border-top: 1px dashed gray;
+    height: 0;
+    margin: 20px 0;
+}
+/* ------------------------------------------------------------------------------- */
+/*Checkbox stuff*/
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
+    gap: 12px;
+    margin-top: 10px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: #fff;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-radius: var(--radius-sm);
+    user-select: none; /* Prevents text selection on rapid clicks */
+}
+
+.checkbox-item:hover {
+    background: #f9f9f9;
+}
+
+/* Cross-browser checkbox styling */
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary); /* Modern browser "tick" color */
+    margin: 0;
+    flex-shrink: 0;
+    appearance: checkbox;
+    -webkit-appearance: checkbox; /* Forces native appearance in Safari */
+}
+
+.checkbox-item span {
+    font-size: var(--font-size-sm);
+    color: var(--dark-gray);
+}
+
+/* ------------------------------------------------------------------------------- */
+/*student portal stuff*/
+.portal-header {
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    align-items: flex-start; /* Aligns them to the left */
+    gap: 8px; /* Adds a small space between the title and the button */
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 480px) {
+    .portal-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+.portal-title {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    color: var(--primary);
+    font-weight: 700;
+    justify-content: center;
+    align-items: center;
+}
+
+.portal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;    /* Centers the form horizontally */
+    justify-content: center; /* Centers the form vertically if there is space */
+    width: 100%;
+}
+
+.portal-body .admin-form {
+    width: 100%;
+    max-width: 100%; /* Allows it to fill the auth-form container */
+}
+
+.portal-footer-text {
+    margin-top: 30px;
+    font-size: var(--font-size-xs);
+    color: var(--gray);
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}

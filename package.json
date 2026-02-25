@@ -1,0 +1,39 @@
+{
+  "name": "library-clearance-monitoring",
+  "description": "Library Clearance Monitoring System - Dual App (Admin + Student)",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev:admin",
+    "dev:admin": "cd admin-app && npm install && npm run dev",
+    "dev:student": "cd student-app && npm install && npm run dev",
+    "dev:all": "concurrently \"npm run dev:admin\" \"npm run dev:student\"",
+    "dev:watch": "npm run dev:admin",
+    "build": "npm run build:admin",
+    "build:admin": "cd admin-app && npm install && npm run build",
+    "build:student": "cd student-app && npm install && npm run build",
+    "build:all": "npm run build:admin && npm run build:student",
+    "lint": "npm run lint:admin && npm run lint:student",
+    "lint:admin": "cd admin-app && npm run lint",
+    "lint:student": "cd student-app && npm run lint",
+    "preview": "npm run preview:admin",
+    "preview:admin": "cd admin-app && npm run preview",
+    "preview:student": "cd student-app && npm run preview"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^8.2.0"
+  },
+  "keywords": [
+    "library",
+    "clearance",
+    "monitoring",
+    "admin",
+    "student-portal"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/library-clearance-monitoring"
+  }
+}

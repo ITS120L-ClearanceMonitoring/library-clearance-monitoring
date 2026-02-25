@@ -1,0 +1,46 @@
+/* ============================================
+   HISTORY FEATURE STYLING
+   Covers: HistoryPage
+   ============================================ */
+
+.history-container {
+  background: var(--white);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.history-container h2 {
+  color: var(--primary);
+  margin-bottom: 24px;
+  font-size: var(--font-size-2xl);
+}
+
+.history-container p {
+  color: var(--gray);
+  font-size: var(--font-size-base);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 767px) {
+  .history-container {
+    padding: 20px;
+  }
+
+  .history-container h2 {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 479px) {
+  .history-container {
+    padding: 16px;
+  }
+
+  .history-container h2 {
+    font-size: var(--font-size-md);
+  }
+}

@@ -1,0 +1,171 @@
+/* ============================================
+   HOME FEATURE STYLING
+   Covers: HomePage
+   ============================================ */
+
+.home-container {
+  background: var(--white);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.home-header h2 {
+  color: var(--primary);
+  margin-bottom: 24px;
+  font-size: var(--font-size-2xl);
+}
+
+.home-header p {
+  color: var(--gray);
+  font-size: var(--font-size-base);
+}
+
+.home-welcome {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.home-metrics-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.home-metric-card {
+  background: var(--light);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.home-metric-card h3 {
+  margin-bottom: 12px;
+  font-size: var(--font-size-lg);
+  color: var(--dark);
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.metric-caption {
+  font-size: var(--font-size-xs);
+  color: var(--gray);
+}
+
+.recent-activity {
+  margin-top: 24px;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.15);
+}
+
+.recent-activity-header h2 {
+  font-size: var(--font-size-xl);
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.recent-activity-header p {
+  color: var(--gray);
+  font-size: var(--font-size-sm);
+  margin-bottom: 20px;
+}
+
+.recent-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-title-row {
+  font-size: var(--font-size-base);
+  color: var(--dark);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.activity-status-text {
+  font-weight: 400;
+  color: var(--gray);
+}
+
+.activity-secondary {
+  font-size: var(--font-size-sm);
+  color: var(--dark);
+}
+
+.activity-meta {
+  font-size: var(--font-size-xs);
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.activity-dot {
+  font-size: 10px;
+}
+
+.activity-badge {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #e0e0e0;
+  color: #555;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 767px) {
+  .home-container {
+    padding: 20px;
+  }
+
+  .home-header h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  .home-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 479px) {
+  .home-container {
+    padding: 16px;
+  }
+
+  .home-header h2 {
+    font-size: var(--font-size-md);
+  }
+}

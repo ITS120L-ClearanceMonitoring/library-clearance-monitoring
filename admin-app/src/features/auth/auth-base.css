@@ -1,0 +1,48 @@
+.password-field-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.password-field-wrapper input {
+  width: 100%;
+  padding-right: 44px;
+  box-sizing: border-box;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0 !important;
+  width: 2.5rem;
+  min-width: unset;
+  max-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  user-select: none;
+  pointer-events: auto;
+  z-index: 2;
+}
+.password-toggle:disabled {
+  cursor: not-allowed;
+  color: #ddd;
+}
+.password-toggle.active {
+  color: var(--mapuan-red);
+}
