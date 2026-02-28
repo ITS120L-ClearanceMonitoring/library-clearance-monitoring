@@ -31,4 +31,25 @@ export const submitStudentLog = async (formData) => {
     }]);
 
   if (logError) throw logError;
+
+  // Send submission confirmation email via Brevo
+  try {
+    const studentFullName = `${formData.firstName} ${formData.middleName ? formData.middleName + ' ' : ''}${formData.lastName}`.trim();
+    
+    await supabase.functions.invoke('send-submission-confirmation', {
+      body: {
+        email: formData.email,
+        studentName: studentFullName,
+        studentNumber: formData.studentNo,
+        program: formData.program,
+        purpose: formData.purpose
+      }
+    });
+  } catch (emailError) {
+    console.error('Failed to send submission confirmation email:', emailError);
+    // Don't throw - log submission was successful, just email failed
+    // User is still notified of successful submission in the form
+  }
+
+  return student;
 };
