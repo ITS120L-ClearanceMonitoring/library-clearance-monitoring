@@ -1,0 +1,2 @@
+import_map = "./deno.json"
+verify_jwt = false
