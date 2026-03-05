@@ -15,6 +15,7 @@ export default function ClearanceListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [timeframe, setTimeframe] = useState("all"); // Added state for timeframe
+  const [activeTab, setActiveTab] = useState("active"); // "active" or "completed"
   const [rejectionRemarks, setRejectionRemarks] = useState("");
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -121,9 +122,19 @@ export default function ClearanceListPage() {
     const search = searchQuery.toLowerCase();
 
     const matchesSearch = fullName.includes(search) || studentNo.includes(search);
-    const matchesStatus = statusFilter === "all" || item.clearance_status === statusFilter;
+    
+    // Tab-based filtering
+    let matchesTab = true;
+    if (activeTab === "active") {
+      matchesTab = item.clearance_status === "PENDING";
+    } else if (activeTab === "completed") {
+      matchesTab = item.clearance_status === "CLEARED" || item.clearance_status === "NOT CLEARED";
+    }
 
-    return matchesSearch && matchesStatus;
+    // Status filter only applies in completed tab
+    const matchesStatus = activeTab === "active" ? true : (statusFilter === "all" || item.clearance_status === statusFilter);
+
+    return matchesSearch && matchesTab && matchesStatus;
   });
 
   if (loading) return <div className="p-6">Loading clearances...</div>;
@@ -150,6 +161,46 @@ export default function ClearanceListPage() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: '24px', borderBottom: '2px solid #e0e0e0' }}>
+          <button
+            onClick={() => { setActiveTab('active'); setStatusFilter('all'); setSearchQuery(''); }}
+            style={{
+              padding: '12px 24px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'active' ? '3px solid var(--primary)' : '3px solid transparent',
+              cursor: 'pointer',
+              fontWeight: '600',
+              color: activeTab === 'active' ? 'var(--primary)' : '#999',
+              fontSize: '14px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Active Requests ({clearances.filter(c => c.clearance_status === 'PENDING').length})
+          </button>
+          <button
+            onClick={() => { setActiveTab('completed'); setStatusFilter('all'); setSearchQuery(''); }}
+            style={{
+              padding: '12px 24px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'completed' ? '3px solid var(--primary)' : '3px solid transparent',
+              cursor: 'pointer',
+              fontWeight: '600',
+              color: activeTab === 'completed' ? 'var(--primary)' : '#999',
+              fontSize: '14px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Completed ({clearances.filter(c => c.clearance_status === 'CLEARED' || c.clearance_status === 'NOT CLEARED').length})
+          </button>
+        </div>
+
         <div style={{ display: 'flex', gap: '15px', marginBottom: '25px' }}>
           <input 
             type="text" 
@@ -158,22 +209,24 @@ export default function ClearanceListPage() {
             onChange={(e) => setSearchQuery(e.target.value)} 
             style={{ flex: 2, padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }} 
           />
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)} 
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
-          >
-            <option value="all">All Statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="CLEARED">Cleared</option>
-            <option value="NOT CLEARED">Not Cleared</option>
-          </select>
+          {activeTab === 'completed' && (
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)} 
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+            >
+              <option value="all">All Statuses</option>
+              <option value="CLEARED">Cleared</option>
+              <option value="NOT CLEARED">Not Cleared</option>
+            </select>
+          )}
         </div>
 
         <div className="clearance-list">
         {filteredClearances.map((item) => {
           const student = item.student || {};
           const purposeName = student.purpose?.purpose_name || 'N/A';
+          const isCompleted = activeTab === 'completed';
           return (
             <div key={item.clearance_uuid} className="clearance-item">
               <div className="clearance-info">
@@ -186,13 +239,14 @@ export default function ClearanceListPage() {
                  <button 
                     onClick={() => handleStatusUpdate(item, "CLEARED")} 
                     className="btn-approve" 
-                    disabled={item.clearance_status === "CLEARED"}
+                    disabled={item.clearance_status === "CLEARED" || isCompleted}
                  >
                    Approve
                  </button>
                  <button 
                     onClick={() => handleStatusUpdate(item, "NOT CLEARED")} 
                     className="btn-reject"
+                    disabled={isCompleted}
                  >
                    Reject
                  </button>
@@ -200,6 +254,11 @@ export default function ClearanceListPage() {
             </div>
           );
         })}
+        {filteredClearances.length === 0 && (
+          <div style={{ padding: '40px 20px', textAlign: 'center', color: '#999' }}>
+            <p>{activeTab === 'active' ? 'No pending clearance requests' : 'No completed clearances'}</p>
+          </div>
+        )}
         </div>
       </div>
 

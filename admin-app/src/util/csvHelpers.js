@@ -34,12 +34,12 @@ export const downloadAuditCSV = (data, timeframe = 'all') => {
   if (filteredData.length === 0) throw new Error("No data available for the selected timeframe.");
 
   const generatedAt = `Report Generated: ${new Date().toLocaleString()} (Filter: ${timeframe})`;
-  const headers = ["Date", "Librarian", "Student ID", "Old Status", "New Status", "Remarks"];
+  const headers = ["Date", "Librarian", "Student Number", "Old Status", "New Status", "Remarks"];
   
   const rows = filteredData.map(log => [
     new Date(log.timestamp).toLocaleString(),
     log.editor_name || 'System',
-    log.student_id,
+    log.student?.student_number || log.student_id,
     log.old_status,
     log.new_status,
     `"${log.remarks || ''}"`
@@ -70,11 +70,11 @@ export const downloadAuditPDF = (data, timeframe = 'all') => {
   doc.setFontSize(10);
   doc.text(generatedAt, 14, 22);
 
-  const headers = [["Date", "Librarian", "Student ID", "Old Status", "New Status", "Remarks"]];
+  const headers = [["Date", "Librarian", "Student Number", "Old Status", "New Status", "Remarks"]];
   const rows = filteredData.map(log => [
     new Date(log.timestamp).toLocaleString(),
     log.editor_name || 'System',
-    log.student_id,
+    log.student?.student_number || log.student_id,
     log.old_status,
     log.new_status,
     log.remarks || ''

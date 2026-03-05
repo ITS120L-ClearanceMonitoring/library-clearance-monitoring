@@ -21,7 +21,10 @@ const HistoryPage = () => {
       try {
         const { data, error } = await supabase
           .from('audit_trail')
-          .select('*')
+          .select(`
+            *,
+            student:student_id(student_number)
+          `)
           .order('timestamp', { ascending: sortOrder === 'asc' });
         
         if (error) throw error;
@@ -39,7 +42,7 @@ const HistoryPage = () => {
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
       const matchesSearch = 
-        log.student_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.student?.student_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.editor_name?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = 
@@ -106,7 +109,7 @@ const HistoryPage = () => {
       <div style={{ display: 'flex', gap: '15px', marginTop: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <input 
           type="text" 
-          placeholder="Search Student ID or Librarian..." 
+          placeholder="Search Student Number or Librarian..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ flex: '2', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
@@ -139,7 +142,7 @@ const HistoryPage = () => {
             <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
               <th>Timestamp</th>
               <th>Librarian</th>
-              <th>Student ID</th>
+              <th>Student Number</th>
               <th>Change</th>
               <th>Remarks</th>
             </tr>
@@ -150,7 +153,7 @@ const HistoryPage = () => {
                 <tr key={log.audit_id} style={{ borderBottom: '1px solid #eee' }}>
                   <td>{new Date(log.timestamp).toLocaleString()}</td>
                   <td>{log.editor_name}</td>
-                  <td>{log.student_id}</td>
+                  <td>{log.student?.student_number}</td>
                   <td>
                     <span className={log.new_status === 'CLEARED' ? 'text-success' : 'text-error'}>
                       {log.old_status} ➜ {log.new_status}
