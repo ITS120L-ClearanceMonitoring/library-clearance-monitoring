@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -7,7 +5,7 @@ const corsHeaders = {
   'Content-Type': 'application/json',
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders, status: 200 })
@@ -22,23 +20,31 @@ serve(async (req: Request) => {
 
   try {
     const { email, studentName, studentNumber, program, purpose } = await req.json()
+    
     const apiKey = Deno.env.get("BREVO_API_KEY")
-    const senderEmail = Deno.env.get("SENDER_EMAIL") || "gelay713@gmail.com"
+    const senderEmail = Deno.env.get("SENDER_EMAIL") || "libraryclearancemonintoringsys@gmail.com"
     const senderName = Deno.env.get("SENDER_NAME") || "Library Clearance System"
 
     if (!apiKey) {
-      throw new Error("BREVO_API_KEY not configured in Supabase secrets")
+      console.error("Email service configuration error")
+      return new Response(
+        JSON.stringify({ success: false, error: "Email service not configured" }),
+        { headers: corsHeaders, status: 500 }
+      )
     }
 
     if (!email || !studentName) {
-      throw new Error("Missing required fields: email and studentName")
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing required fields: email and studentName" }),
+        { headers: corsHeaders, status: 400 }
+      )
     }
 
     const emailSubject = "Clearance Request Submission Confirmation"
 
     const emailBody = `
       <p>Dear ${studentName},</p>
-      <p>This is to confirm that your library clearance request has been successfully submitted to the <strong>Library Clearance Monitoring System</strong> of Mapúa Library.</p>
+      <p>This is to confirm that your library clearance request has been successfully submitted to the <strong>Library Clearance Monitoring System</strong> of Mapua Library.</p>
       
       <h3 style="color: #2c3e50; margin-top: 20px;">Submission Details:</h3>
       <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
@@ -63,7 +69,7 @@ serve(async (req: Request) => {
       <p style="margin-top: 20px;">Your clearance request is now being processed by the library staff. You will receive a notification email once your clearance status has been determined (Approved or Not Approved).</p>
       
       <p style="background: #e8f4f8; padding: 15px; border-left: 4px solid #3498db; margin: 15px 0;">
-        <strong>⏱️ Processing Time:</strong> The review process typically takes 1-2 business days. Please check your inbox regularly for updates.
+        <strong>Processing Time:</strong> The review process typically takes 1-2 business days. Please check your inbox regularly for updates.
       </p>
 
       <p>If you have any questions or believe there is an error in your submission, please contact the library at <strong>library@mapua.edu</strong> and reference your student number.</p>
@@ -75,7 +81,6 @@ serve(async (req: Request) => {
       </p>
     `
 
-    // Send email via Brevo
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
@@ -96,11 +101,12 @@ serve(async (req: Request) => {
     const result = await response.json()
 
     if (!response.ok) {
-      console.error("Brevo error:", result)
-      throw new Error(result.message || "Failed to send email via Brevo")
+      console.error("Email send failed:", result.message)
+      return new Response(
+        JSON.stringify({ success: false, error: result.message || "Failed to send email" }),
+        { headers: corsHeaders, status: 500 }
+      )
     }
-
-    console.log(`Submission confirmation email sent to ${email}:`, result)
 
     return new Response(
       JSON.stringify({
@@ -108,7 +114,7 @@ serve(async (req: Request) => {
         messageId: result.messageId,
         message: `Confirmation email sent to ${email}`,
       }),
-      { headers: corsHeaders, status: 200 },
+      { headers: corsHeaders, status: 200 }
     )
   } catch (error) {
     console.error("Error in send-submission-confirmation:", error)
@@ -117,7 +123,7 @@ serve(async (req: Request) => {
         success: false,
         error: error.message || "Internal server error",
       }),
-      { headers: corsHeaders, status: 500 },
+      { headers: corsHeaders, status: 500 }
     )
   }
 })

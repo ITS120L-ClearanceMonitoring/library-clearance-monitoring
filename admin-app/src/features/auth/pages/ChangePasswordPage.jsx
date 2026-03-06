@@ -52,12 +52,9 @@ const ChangePasswordPage = () => {
     setLoading(true);
 
     try {
-      console.log("🔵 Starting password change for user:", user.id);
-      
       // 1. Update the auth user's password
       const { error: authError } = await supabase.auth.updateUser({ password });
       if (authError) throw authError;
-      console.log("✅ Password updated in auth");
 
       // 2. Update the must_change_password flag in the users table directly
       const { error: updateError } = await supabase
@@ -66,10 +63,9 @@ const ChangePasswordPage = () => {
         .eq('user_id', user.id);
       
       if (updateError) {
-        console.error("❌ Update error:", updateError);
+        console.error("Failed to update password flag:", updateError.message);
         throw updateError;
       }
-      console.log("✅ must_change_password flag update query sent");
 
       // 3. Wait a moment for the database to commit
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -82,20 +78,16 @@ const ChangePasswordPage = () => {
         .single();
       
       if (verifyError) {
-        console.error("❌ Could not verify update:", verifyError);
+        console.error("Verification failed:", verifyError.message);
         throw new Error("Could not verify password change. Please try again.");
       }
       
       if (verifyData.must_change_password !== false) {
-        console.error("❌ Update failed - must_change_password is still:", verifyData.must_change_password);
         throw new Error("Password change was not saved. Please try again.");
       }
-      
-      console.log("✅ Verified: must_change_password is now false");
 
       // 5. Sign out the user so they must log in again with new password
       await logout();
-      console.log("✅ User logged out");
       
       // Clear sensitive session data
       secureSession.clearAuthData();
@@ -104,7 +96,7 @@ const ChangePasswordPage = () => {
       alert("Password set successfully! Please log in with your new password.");
       navigate('/login', { replace: true });
     } catch (err) {
-      console.error('Password change error:', err);
+      console.error('Password change error:', err.message);
       setError(err.message || 'Failed to update password. Please try again.');
       setLoading(false);
     }

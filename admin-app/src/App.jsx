@@ -10,6 +10,7 @@ import HomePage from "./features/home/pages/HomePage";
 import ClearanceListPage from "./features/clearances/pages/ClearanceListPage";
 import HistoryPage from "./features/history/pages/HistoryPage";
 import UserManagementPage from "./features/users/pages/UserManagementPage";
+import ConfigurationPage from "./features/configuration/pages/ConfigurationPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -47,6 +48,11 @@ function App() {
             <Route path="users" element={
               <ProtectedRoute roleRequired="LIBRARY_ADMIN">
                 <UserManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="configuration" element={
+              <ProtectedRoute roleRequired="LIBRARY_ADMIN">
+                <ConfigurationPage />
               </ProtectedRoute>
             } />
           </Route>

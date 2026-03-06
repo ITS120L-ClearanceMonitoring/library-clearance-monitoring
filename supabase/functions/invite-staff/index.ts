@@ -23,59 +23,56 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json()
     const { email, first_name, last_name, role } = body
-    
-    console.log('Edge Function received:', { email, first_name, last_name, role })
 
     // Validate required fields
     if (!email || !role) {
-      throw new Error(`Missing required fields: email=${email}, role=${role}`)
+      throw new Error('Missing required fields: email and role')
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format')
     }
 
     // Initialize Admin Client with the Service Role Key (Server-side only!)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
-    console.log('Environment check - URL exists:', !!supabaseUrl, 'Key exists:', !!serviceRoleKey)
-    
     if (!supabaseUrl || !serviceRoleKey) {
-      throw new Error('Missing Supabase environment variables')
+      throw new Error('Server configuration error')
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
     // Check if user already exists in the users table
-    console.log('Checking if user already exists:', email)
     const { data: existingUser } = await supabaseAdmin
       .from('users')
-      .select('*')
+      .select('email')
       .eq('email', email)
       .single()
 
     if (existingUser) {
-      console.error('User already exists:', email)
-      throw new Error(`Duplicated user data: This email address is already registered. Please use a different email or delete the existing account first.`)
+      throw new Error('This email address is already registered. Please use a different email or delete the existing account first.')
     }
 
     // Create user in Supabase Auth with auto-generated password (user will set their own)
-    console.log('Creating user in auth system:', email)
     const { data: authData, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
-      password: Math.random().toString(36).slice(-12), // Temporary random password
-      email_confirm: false, // Require email confirmation
+      password: crypto.randomUUID(), // Secure random temporary password
+      email_confirm: false,
       user_metadata: { first_name, last_name, role }
     })
 
     if (createAuthError) {
-      console.error('Auth creation error:', createAuthError)
+      console.error('Auth creation error:', createAuthError.message)
       throw createAuthError
     }
 
     const userId = authData.user?.id
-    console.log('User created in auth, ID:', userId)
-    if (!userId) throw new Error('Failed to get user ID from auth creation')
+    if (!userId) throw new Error('Failed to create user account')
 
     // Generate password reset link
-    console.log('Generating password reset link')
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email,
@@ -85,12 +82,11 @@ Deno.serve(async (req) => {
     })
 
     if (linkError) {
-      console.error('Generate link error:', linkError)
+      console.error('Generate link error:', linkError.message)
       throw linkError
     }
 
     const resetLink = linkData?.properties?.action_link
-    console.log('Password reset link generated')
 
     // Insert user profile into users table
     const { error: insertError } = await supabaseAdmin
@@ -107,11 +103,9 @@ Deno.serve(async (req) => {
       })
 
     if (insertError) {
-      console.error('Insert error:', insertError)
+      console.error('Insert error:', insertError.message)
       throw insertError
     }
-
-    console.log('User profile inserted into database')
 
     // Format role name for email
     const formatRole = (roleStr: string): string => {
@@ -124,13 +118,11 @@ Deno.serve(async (req) => {
 
     // Send invitation email via Brevo only
     try {
-      const senderEmail = Deno.env.get('SENDER_EMAIL') || 'gelay713@gmail.com'
+      const senderEmail = Deno.env.get('SENDER_EMAIL') || 'libraryclearancemonintoringsys@gmail.com'
       const senderName = Deno.env.get('SENDER_NAME') || 'Library Clearance System'
       const brevoApiKey = Deno.env.get('BREVO_API_KEY')
 
-      if (!brevoApiKey) {
-        console.warn('BREVO_API_KEY not configured, skipping email')
-      } else {
+      if (brevoApiKey) {
         const emailHtml = `
           <h2>Welcome to Library Clearance System</h2>
           <p>Hello ${first_name} ${last_name},</p>
@@ -158,24 +150,18 @@ Deno.serve(async (req) => {
           }),
         })
 
-        const emailResult = await emailResponse.json()
-
         if (!emailResponse.ok) {
-          console.error('Brevo error:', emailResult)
-          console.warn(`Email could not be sent to ${email}, but user was created successfully`)
-        } else {
-          console.log(`Invitation email sent to ${email}:`, emailResult)
+          const emailResult = await emailResponse.json()
+          console.error('Email send error:', emailResult.message)
         }
       }
     } catch (emailErr) {
-      console.warn('Email service error:', emailErr)
-      console.warn('User was created successfully, but email notification could not be sent')
+      console.warn('Email service error - user was created but email failed')
     }
 
-    console.log('User successfully invited and profile created')
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Staff member invited successfully. Invitation email sent.',
+      message: 'Staff member invited successfully.',
       user: { email, first_name, last_name, role }
     }), {
       headers: corsHeaders,
@@ -183,18 +169,18 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Function error:', error)
+    console.error('Invite staff error:', error?.message)
     
-    const errorMessage = error?.message || error?.toString() || 'Unknown error'
-    const isDuplicateError = errorMessage.includes('Duplicated user data') || errorMessage.includes('user already exists')
+    const errorMessage = error?.message || 'Unknown error'
+    const isEmailError = errorMessage.includes('already registered')
     
     return new Response(JSON.stringify({ 
       success: false,
       error: errorMessage,
-      code: isDuplicateError ? 'email_exists' : 'unknown_error',
+      code: isEmailError ? 'email_exists' : 'unknown_error',
     }), {
       headers: corsHeaders,
-      status: isDuplicateError ? 400 : 400,
+      status: 400,
     })
   }
 })

@@ -57,13 +57,15 @@ export const submitStudentLog = async (formData) => {
         console.log('Invoking send-submission-confirmation with:', payload);
 
         // Use direct fetch with Supabase API key header
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         const response = await fetch(
             'https://rmdgexukylhfjobnwmfe.supabase.co/functions/v1/send-submission-confirmation',
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    'apikey': anonKey,
+                    'Authorization': `Bearer ${anonKey}`,
                     'x-client-info': 'supabase-js/2.94.0'
                 },
                 body: JSON.stringify(payload)

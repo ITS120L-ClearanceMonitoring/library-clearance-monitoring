@@ -10,16 +10,9 @@ export const AuthProvider = ({ children }) => {
   // Merges Auth data with your custom 'users' table in the Public schema
   const fetchProfile = async (authUser) => {
     // If no authUser is provided, we must stop loading and exit
-    if (!authUser) {
-      console.log("No authUser provided, skipping profile fetch");
-      return;
-    }
+    if (!authUser) return;
 
     try {
-      console.log("=== PROFILE FETCH START ===");
-      console.log("User ID:", authUser.id);
-      console.log("User email:", authUser.email);
-      
       // Update last_login timestamp
       const { error: updateError } = await supabase
         .from('users')
@@ -27,41 +20,28 @@ export const AuthProvider = ({ children }) => {
         .eq('user_id', authUser.id);
       
       if (updateError) {
-        console.warn("Failed to update last_login:", updateError);
-      } else {
-        console.log("✅ Updated last_login");
+        console.warn("Failed to update last_login:", updateError.message);
       }
       
-      // Query Supabase without timeout - let it complete naturally
-      // Disable caching to ensure we get fresh data
+      // Query Supabase for user profile
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('user_id', authUser.id)
         .single();
 
-      console.log("=== QUERY COMPLETED ===");
-      console.log("Error:", error);
-      console.log("Data:", data);
-      console.log("must_change_password from DB:", data?.must_change_password);
-
       if (error) {
-        console.error("PROFILE FETCH FAILED:", error.code, error.message);
-        console.log("Setting user with AUTH data only (no profile)");
-        // Default to must_change_password: false if we can't fetch profile
+        console.error("Profile fetch failed:", error.message);
         setUser({ ...authUser, must_change_password: false });
       } else if (!data) {
-        console.warn("NO PROFILE DATA - User record may not exist");
+        console.warn("No profile data found for user");
         setUser({ ...authUser, must_change_password: false });
       } else {
-        console.log("PROFILE FOUND - Merging with auth data");
-        console.log("Role from profile:", data.role);
         const mergedUser = { ...authUser, ...data };
-        console.log("Final merged user - must_change_password:", mergedUser.must_change_password);
         setUser(mergedUser);
       }
     } catch (err) {
-      console.error("CRITICAL ERROR:", err);
+      console.error("Profile fetch error:", err.message);
       setUser({ ...authUser, must_change_password: false });
     }
   };

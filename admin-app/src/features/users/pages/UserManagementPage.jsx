@@ -358,8 +358,9 @@ const UserManagementPage = () => {
               const middleInitial = getMiddleInitial(u.middle_name);
               const fullName = `${u.first_name} ${middleInitial} ${u.last_name}`.trim();
               const roleDisplay = u.role === 'LIBRARY_ADMIN' ? 'Head Librarian' : 'Librarian';
-              const accessDisplay = u.role === 'LIBRARY_ADMIN' ? 'FULL' : 'PARTIAL';
-              const badgeClass = u.role === 'LIBRARY_ADMIN' ? 'badge-full' : 'badge-partial';
+              const isPending = u.must_change_password === true;
+              const accessDisplay = isPending ? 'PENDING' : (u.role === 'LIBRARY_ADMIN' ? 'FULL' : 'PARTIAL');
+              const badgeClass = isPending ? 'badge-pending' : (u.role === 'LIBRARY_ADMIN' ? 'badge-full' : 'badge-partial');
               return (
                 <tr key={u.user_id || u.email}>
                   <td>{fullName}</td>

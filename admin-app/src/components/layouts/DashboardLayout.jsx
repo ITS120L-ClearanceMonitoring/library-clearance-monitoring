@@ -104,6 +104,9 @@ const DashboardLayout = () => {
             {isAdmin && (
               <NavItem to="/users"    icon={UsersIcon}     label="Users"      />
             )}
+            {isAdmin && (
+              <NavItem to="/configuration"    icon={UsersIcon}     label="Settings"      />
+            )}
             <NavItem
               icon={LogoutIcon}
               label="Logout"

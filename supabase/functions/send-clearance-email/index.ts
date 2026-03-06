@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -7,7 +5,7 @@ const corsHeaders = {
   'Content-Type': 'application/json',
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders, status: 200 })
@@ -23,7 +21,7 @@ serve(async (req: Request) => {
   try {
     const { email, studentName, status, remarks } = await req.json()
     const apiKey = Deno.env.get("BREVO_API_KEY")
-    const senderEmail = Deno.env.get("SENDER_EMAIL") || "gelay713@gmail.com"
+    const senderEmail = Deno.env.get("SENDER_EMAIL") || "libraryclearancemonintoringsys@gmail.com"
     const senderName = Deno.env.get("SENDER_NAME") || "Library Clearance System"
 
     if (!apiKey) {
@@ -87,11 +85,9 @@ serve(async (req: Request) => {
     const result = await response.json()
 
     if (!response.ok) {
-      console.error("Brevo error:", result)
+      console.error("Email send failed:", result.message)
       throw new Error(result.message || "Failed to send email via Brevo")
     }
-
-    console.log(`Email sent to ${email}:`, result)
 
     return new Response(
       JSON.stringify({

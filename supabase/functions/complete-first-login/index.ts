@@ -33,11 +33,9 @@ Deno.serve(async (req) => {
       .single()
 
     if (error) {
-      console.error('Update error:', error)
+      console.error('Update error:', error.message)
       throw error
     }
-
-    console.log('Successfully updated user:', userId, '- must_change_password set to false')
 
     return new Response(JSON.stringify({ success: true, data }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -45,7 +43,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Function error:', error)
+    console.error('Complete first login error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

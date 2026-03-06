@@ -11,6 +11,7 @@ const StudentLoggingForm = () => {
     const [purposes, setPurposes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const [form, setForm] = useState({
         studentNo: '',
@@ -117,6 +118,7 @@ const StudentLoggingForm = () => {
             return;
         }
 
+        setSubmitting(true);
         try {
             // Send form directly as it now contains the correct IDs
             await submitStudentLog(form);
@@ -129,6 +131,8 @@ const StudentLoggingForm = () => {
         } catch (err) {
             console.error("Submission failed:", err);
             alert("Error: " + err.message);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -259,8 +263,8 @@ const StudentLoggingForm = () => {
                 </div>
             )}
 
-            <Button type="submit" variant="primary" style={{width: '100%'}}>
-                Submit Request
+            <Button type="submit" variant="primary" style={{width: '100%'}} disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit Request'}
             </Button>
         </form>
     );

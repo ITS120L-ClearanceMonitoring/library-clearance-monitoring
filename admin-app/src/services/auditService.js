@@ -46,3 +46,61 @@ export const updateClearanceWithAudit = async (data) => {
 
   if (auditError) throw auditError;
 };
+
+  export const updateStudentInfoWithAudit = async (data) => {
+    const {
+      student_id,
+      old_first_name,
+      old_last_name,
+      old_student_number,
+      new_first_name,
+      new_last_name,
+      new_student_number,
+      performed_by,
+      editor_name,
+      clearance_uuid,
+      clearance_status
+    } = data;
+
+    const { error: studentUpdateError } = await supabase
+      .from('student')
+      .update({
+        first_name: new_first_name,
+        last_name: new_last_name,
+        student_number: new_student_number
+      })
+      .eq('student_id', student_id);
+
+    if (studentUpdateError) throw studentUpdateError;
+
+    const changedFields = [];
+    if (old_first_name !== new_first_name) {
+      changedFields.push(`First Name: ${old_first_name || '-'} → ${new_first_name || '-'}`);
+    }
+    if (old_last_name !== new_last_name) {
+      changedFields.push(`Last Name: ${old_last_name || '-'} → ${new_last_name || '-'}`);
+    }
+    if (old_student_number !== new_student_number) {
+      changedFields.push(`Student Number: ${old_student_number || '-'} → ${new_student_number || '-'}`);
+    }
+
+    const remarks = changedFields.length > 0
+      ? changedFields.join(' | ')
+      : 'Student information edit submitted with no field changes.';
+
+    const { error: auditError } = await supabase
+      .from('audit_trail')
+      .insert([{
+        clearance_uuid,
+        student_id,
+        action_type: 'STUDENT_INFO_EDIT',
+        old_status: clearance_status,
+        new_status: clearance_status,
+        performed_by,
+        editor_name,
+        remarks,
+        timestamp: new Date().toISOString()
+      }]);
+
+    if (auditError) throw auditError;
+  };
