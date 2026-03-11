@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${Deno.env.get('REDIRECT_URL') || 'http://localhost:5173'}/change-password`
+        redirectTo: `${Deno.env.get('REDIRECT_URL') || 'https://library-cms-admin.vercel.app'}/change-password`
       }
     })
 

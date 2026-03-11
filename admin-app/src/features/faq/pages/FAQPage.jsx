@@ -118,7 +118,7 @@ const faqs = [
       {
         question: 'How do I change my password?',
         answer:
-          'Click on your name or account settings in the header area and select "Change Password." Enter your current password followed by your new password. Passwords should be at least 8 characters and include a mix of letters, numbers, and symbols for security.',
+          'To change your password while logged in, use the "Forgot Password" feature. Click the logout button and then navigate to the login page. Click "Forgot Password," enter your email address, and follow the reset link sent to your email. You will be able to set a new password. Passwords should be at least 8 characters and include a mix of letters, numbers, and symbols for security.',
       },
     ],
   },
