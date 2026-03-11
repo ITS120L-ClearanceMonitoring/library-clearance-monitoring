@@ -129,3 +129,27 @@ export const updateFirstPassword = async (newPassword) => {
 
   return data;
 };
+
+// Handles password reset email request via Brevo
+export const resetPasswordForEmail = async (email) => {
+  const sanitizedEmail = sanitizeInput(email, 'email');
+  
+  if (!sanitizedEmail) {
+    throw new Error('Email is required');
+  }
+
+  try {
+    // Call the edge function that handles password reset via Brevo
+    const { data, error } = await supabase.functions.invoke('send-password-reset-email', {
+      body: { email: sanitizedEmail }
+    });
+
+    if (error) throw error;
+
+    return data;
+  } catch (err) {
+    // Don't expose specific error details to prevent user enumeration
+    console.error('Password reset request error:', err);
+    throw new Error('Failed to send password reset email. Please try again later.');
+  }
+};;
