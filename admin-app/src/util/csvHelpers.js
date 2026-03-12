@@ -29,6 +29,32 @@ const getTimestampedFilename = (prefix, timeframe = 'all') => {
   return `${prefix}${timeframeSuffix}_${dateStr}_${timeStr}`;
 };
 
+const generateSummaryData = (filteredData) => {
+  const summary = {};
+  
+  filteredData.forEach(item => {
+    const programName = item.student?.program?.program_name || 'N/A';
+    
+    if (!summary[programName]) {
+      summary[programName] = { cleared: 0, rejected: 0 };
+    }
+    
+    if (item.clearance_status === 'CLEARED') {
+      summary[programName].cleared++;
+    } else if (item.clearance_status === 'NOT CLEARED' || item.clearance_status === 'REJECTED') {
+      summary[programName].rejected++;
+    }
+  });
+
+  return Object.keys(summary)
+    .sort((a, b) => a.localeCompare(b))
+    .map(program => [
+      program,
+      summary[program].cleared,
+      summary[program].rejected
+    ]);
+};
+
 export const downloadAuditCSV = (data, timeframe = 'all') => {
   const filteredData = filterByTimeframe(data, 'timestamp', timeframe);
   if (filteredData.length === 0) throw new Error("No data available for the selected timeframe.");
@@ -42,7 +68,7 @@ export const downloadAuditCSV = (data, timeframe = 'all') => {
     log.student?.student_number || log.student_id,
     log.old_status,
     log.new_status,
-    `"${log.remarks || ''}"`
+    `"${(log.remarks || '').replace(/"/g, '""')}"`
   ]);
 
   const csvContent = [generatedAt, "", headers, ...rows]
@@ -71,21 +97,37 @@ export const downloadAuditPDF = (data, timeframe = 'all') => {
   doc.text(generatedAt, 14, 22);
 
   const headers = [["Date", "Librarian", "Student Number", "Old Status", "New Status", "Remarks"]];
-  const rows = filteredData.map(log => [
-    new Date(log.timestamp).toLocaleString(),
-    log.editor_name || 'System',
-    log.student?.student_number || log.student_id,
-    log.old_status,
-    log.new_status,
-    log.remarks || ''
-  ]);
+  const rows = filteredData.map(log => {
+    const safeRemarks = (log.remarks || '').replace(/→/g, '->');
+    return [
+      new Date(log.timestamp).toLocaleString(),
+      log.editor_name || 'System',
+      log.student?.student_number || log.student_id,
+      log.old_status,
+      log.new_status,
+      safeRemarks
+    ];
+  });
 
   autoTable(doc, {
     startY: 30,
     head: headers,
     body: rows,
     theme: 'grid',
-    styles: { fontSize: 8 },
+    styles: { 
+      fontSize: 8,
+      cellPadding: 3,
+      overflow: 'linebreak'
+    },
+    columnStyles: {
+      0: { cellWidth: 25 },
+      1: { cellWidth: 25 },
+      2: { cellWidth: 25 },
+      3: { cellWidth: 20 },
+      4: { cellWidth: 20 },
+      5: { cellWidth: 'auto' }
+    },
+    margin: { left: 14, right: 14 },
     headStyles: { fillColor: [58, 134, 255] }
   });
 
@@ -97,13 +139,20 @@ export const downloadClearanceReportCSV = (reportData, timeframe = 'all') => {
   if (filteredData.length === 0) throw new Error("No data available for the selected timeframe.");
 
   const generatedAt = `Report Generated: ${new Date().toLocaleString()} (Filter: ${timeframe})`;
-  const headers = ["Date Logged", "Student Number", "Full Name", "Program", "Purpose", "Status", "Verified By"];
   
+  const summaryRows = generateSummaryData(filteredData);
+  const summarySection = [
+    ["Summary by Program"],
+    ["Program", "Amount Cleared", "Amount Rejected"],
+    ...summaryRows.map(row => [`"${row[0]}"`, row[1], row[2]]),
+    []
+  ];
+
+  const headers = ["Date Logged", "Student Number", "Full Name", "Program", "Purpose", "Status", "Verified By"];
   const rows = filteredData.map(item => {
     const s = item.student || {};
     const l = item.librarian || {};
     
-    // Safely extract names from related tables
     const programName = s.program?.program_name || 'N/A';
     const purposeName = s.purpose?.purpose_name || 'N/A';
 
@@ -118,7 +167,14 @@ export const downloadClearanceReportCSV = (reportData, timeframe = 'all') => {
     ];
   });
 
-  const csvContent = [generatedAt, "", headers, ...rows]
+  const csvContent = [
+    generatedAt, 
+    "", 
+    ...summarySection,
+    ["Detailed Clearance Report"],
+    headers, 
+    ...rows
+  ]
     .map(e => Array.isArray(e) ? e.join(",") : e)
     .join("\n");
 
@@ -143,12 +199,35 @@ export const downloadClearanceReportPDF = (reportData, timeframe = 'all') => {
   doc.setFontSize(10);
   doc.text(generatedAt, 14, 22);
 
+  const summaryRows = generateSummaryData(filteredData);
+  
+  doc.setFontSize(12);
+  doc.text("Summary by Program", 14, 32);
+
+  autoTable(doc, {
+    startY: 36,
+    head: [["Program", "Amount Cleared", "Amount Rejected"]],
+    body: summaryRows,
+    theme: 'grid',
+    styles: { 
+      fontSize: 8, 
+      cellPadding: 3, 
+      overflow: 'linebreak' 
+    },
+    margin: { left: 14, right: 14 },
+    headStyles: { fillColor: [58, 134, 255] }
+  });
+
+  const finalY = doc.lastAutoTable.finalY || 36;
+
+  doc.setFontSize(12);
+  doc.text("Detailed Clearance Report", 14, finalY + 10);
+
   const headers = [["Date Logged", "Student Number", "Full Name", "Program", "Purpose", "Status", "Verified By"]];
   const rows = filteredData.map(item => {
     const s = item.student || {};
     const l = item.librarian || {};
     
-    // Safely extract names from related tables
     const programName = s.program?.program_name || 'N/A';
     const purposeName = s.purpose?.purpose_name || 'N/A';
 
@@ -164,11 +243,25 @@ export const downloadClearanceReportPDF = (reportData, timeframe = 'all') => {
   });
 
   autoTable(doc, {
-    startY: 30,
+    startY: finalY + 14,
     head: headers,
     body: rows,
     theme: 'striped',
-    styles: { fontSize: 8 },
+    styles: { 
+      fontSize: 8,
+      cellPadding: 3,
+      overflow: 'linebreak'
+    },
+    columnStyles: {
+      0: { cellWidth: 18 },
+      1: { cellWidth: 22 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 35 },
+      4: { cellWidth: 30 },
+      5: { cellWidth: 20 },
+      6: { cellWidth: 'auto' }
+    },
+    margin: { left: 14, right: 14 },
     headStyles: { fillColor: [255, 199, 44], textColor: [0, 0, 0] } 
   });
 
