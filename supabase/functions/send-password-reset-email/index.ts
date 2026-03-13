@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
     const brevoApiKey = Deno.env.get("BREVO_API_KEY")
     const senderEmail = Deno.env.get("SENDER_EMAIL") || "libraryclearancemonintoringsys@gmail.com"
     const senderName = Deno.env.get("SENDER_NAME") || "Library Clearance System"
-    const appUrl = Deno.env.get("APP_URL") || "https://library-cms-admin.vercel.app"
+    const appUrl = Deno.env.get("APP_URL") || "https://mu-lcms-admin.vercel.app"
 
     if (!supabaseUrl || !serviceRoleKey) {
       throw new Error("Server configuration error: Supabase credentials missing")
